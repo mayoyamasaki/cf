@@ -1,0 +1,6 @@
+[package]
+name = "p837a"
+version = "0.1.0"
+authors = ["mayo-ya <mayo.yamasaki@gmail.com>"]
+
+[dependencies]
