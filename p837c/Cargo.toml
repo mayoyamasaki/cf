@@ -1,0 +1,7 @@
+[package]
+name = "p837b"
+version = "0.1.0"
+authors = ["mayo-ya <mayo.yamasaki@gmail.com>"]
+
+[dependencies]
+itertools = "0.6.1"
