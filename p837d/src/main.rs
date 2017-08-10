@@ -6,10 +6,9 @@ fn string2nums(s: String) -> Vec<i64> {
     .collect::<Vec<i64>>()
 }
 
-#[derive(Debug)]
 struct Pair {
-    factor2: i64,
-    factor5: i64,
+    factor2: usize,
+    factor5: usize,
 }
 
 fn main() {
@@ -36,28 +35,27 @@ fn main() {
             f5 += 1;
             n /= 5;
         }
-        ps.push(Pair{ factor2: f2, factor5: f5})
+        ps.push(Pair{ factor2: f2 as usize, factor5: f5 as usize})
     }
 
     let mut dp: Vec<Vec<i64>> = vec![vec![-1; 30*201]; k+1];
     dp[0][0] = 0;
-    for i in 0..n {
+    for i in 0..n as usize{
         let mut tmp = dp.clone();
-        for j in 0..k {
-            for l in 0..30*200 {
-                if dp[j as usize][l as usize] >= 0 {
-                   tmp[j+1 as usize][l+ps[i as usize].factor5 as usize]
-                       = cmp::max(tmp[j+1 as usize][l+ps[i as usize].factor5 as usize],
-                                  dp[j as usize][l as usize] + ps[i as usize].factor2);
+        for j in 0..k as usize {
+            for l in 0..30*200 as usize {
+                if dp[j][l] >= 0 {
+                   tmp[j+1][l+ps[i].factor5] = cmp::max(tmp[j+1][l+ps[i].factor5],
+                                                        dp[j][l] + ps[i].factor2 as i64);
                 }
             }
         }
         dp = tmp;
     }
     let mut ans = 0;
-    for j in 0..k+1 {
+    for j in 0..k+1 as usize {
         for l in 0..30*200 {
-            ans = cmp::max(ans, cmp::min(l, dp[j as usize][l as usize]))
+            ans = cmp::max(ans, cmp::min(l, dp[j][l as usize]))
         }
     }
     println!("{}", ans);
