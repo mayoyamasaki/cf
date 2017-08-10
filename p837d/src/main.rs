@@ -1,26 +1,15 @@
-use std::io;
-fn string2nums(s: String) -> Vec<u64> {
+use std::{io, cmp};
+fn string2nums(s: String) -> Vec<i64> {
    s.trim()
     .split_whitespace()
-    .map(|c| c.parse::<u64>().unwrap())
-    .collect::<Vec<u64>>()
+    .map(|c| c.parse::<i64>().unwrap())
+    .collect::<Vec<i64>>()
 }
 
-fn roundness(n: u64) -> usize {
-    n.to_string().chars().rev().take_while(|&c| c == '0').count()
-}
-
-fn besti(ref nums: &Vec<u64>, p: u64) -> usize {
-    let mut max_i = 0;
-    let mut max_r = 0;
-    for (i, n) in nums.iter().enumerate() {
-        let r = roundness(n * p);
-        if r > max_r {
-            max_r = r;
-            max_i = i;
-        }
-    }
-    max_i
+#[derive(Debug)]
+struct Pair {
+    factor2: i64,
+    factor5: i64,
 }
 
 fn main() {
@@ -28,48 +17,48 @@ fn main() {
     io::stdin().read_line(&mut buf).unwrap();
     let mut nums = string2nums(buf);
     let k = nums.pop().unwrap() as usize;
+    let n = nums.pop().unwrap() as usize;
 
     let mut buf = String::new();
     io::stdin().read_line(&mut buf).unwrap();
-    let mut nums = string2nums(buf);
+    let nums = string2nums(buf);
 
-    if k < 2 {
-        let i = besti(&nums, 1);
-        println!("{}", roundness(nums[i]));
-        return;
+    let mut ps: Vec<Pair> = Vec::new();
+    for n in nums {
+        let mut n = n;
+        let mut f2 = 0;
+        let mut f5 = 0;
+        while n%2 == 0 {
+            f2 += 1;
+            n /= 2;
+        }
+        while n%5 == 0 {
+            f5 += 1;
+            n /= 5;
+        }
+        ps.push(Pair{ factor2: f2, factor5: f5})
     }
 
-    let mut max_r = 0;
-    let mut max_p = 0;
-    let mut max_i = 0;
-    let mut max_j = 0;
-    for i in 0..nums.len() {
-        for j in 0..nums.len() {
-            if i == j { continue; }
-            let i = i as usize;
-            let j = j as usize;
-            let p = nums[i] * nums[j];
-            let r = roundness(p);
-            if r >= max_r {
-                max_r = r;
-                max_p = p;
-                max_i = i;
-                max_j = j;
+    let mut dp: Vec<Vec<i64>> = vec![vec![-1; 30*201]; k+1];
+    dp[0][0] = 0;
+    for i in 0..n {
+        let mut tmp = dp.clone();
+        for j in 0..k {
+            for l in 0..30*200 {
+                if dp[j as usize][l as usize] >= 0 {
+                   tmp[j+1 as usize][l+ps[i as usize].factor5 as usize]
+                       = cmp::max(tmp[j+1 as usize][l+ps[i as usize].factor5 as usize],
+                                  dp[j as usize][l as usize] + ps[i as usize].factor2);
+                }
             }
         }
+        dp = tmp;
     }
-
-    if max_i > max_j {
-        nums.remove(max_i); nums.remove(max_j);
-    } else {
-        nums.remove(max_j); nums.remove(max_i);
+    let mut ans = 0;
+    for j in 0..k+1 {
+        for l in 0..30*200 {
+            ans = cmp::max(ans, cmp::min(l, dp[j as usize][l as usize]))
+        }
     }
-
-    for _ in 0..k-2 {
-        let i = besti(&nums, max_p);
-        max_p *= nums[i];
-        max_r = roundness(max_p);
-        nums.remove(i);
-    }
-    println!("{}", max_r);
+    println!("{}", ans);
 }
